@@ -1,0 +1,102 @@
+ 
+ <html>
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script type="text/javascript">
+(function() {
+
+	function Scribble(cont) {
+		cont = $(cont);
+		var dims = { x:cont.offset().left, y:cont.offset().top, w:cont.width(), h: cont.height() };
+		var canvas = $('<canvas style="position:absolute;"/>').attr({ width:dims.w + 'px', height:dims.h+'px'}).prependTo(cont);
+		var ctx = canvas[0].getContext("2d"), drawing = false, sClr = "black", sWidth = 2, tool = 'Line';
+		var strokes = [];
+
+		function setupTools() {
+			var tb = $("<div style='position:absolute; width:100%; background-color:#efefef; z-index:1; cursor:default'/>").prependTo(cont);
+			[	{ tip:"Tool", 		func: function() { tool = $(this).val(); },  	text: [ 'Line', 'Pencil', 'Rectangle', 'Arrow' ] }, 
+				{ tip:"Color", 		func: function() { sClr = $(this).val(); }, 	text: [ 'Black', 'Red', 'Green', 'Blue', 'White' ] }, 
+				{ tip:"Thickness", 	func: function() { sWidth = $(this).val(); },	text: [ 2,4,8,16 ] }, 
+				{ tip:"Undo", 		func: function() { strokes.pop(); draw(); },	text: "&#8630;" }, 
+				{ tip:"Clear", 		func: function() { strokes = [];  draw(); }, 	text: "&#128472;" }
+			].forEach(function(t) {
+				if ($.isArray(t.text)) 
+					$('<select/>').change(t.func).append($(t.text.map(function(x) { 
+							return typeof(x) != "object" ? '<option>' + x + '</option>'
+								: '<option value=' + x.val + '>' + x.name + '</option>'; }).join('')))
+								.appendTo(tb).attr({title:t.tip});
+				else 
+					$('<div style="display:inline-block; padding: 0 4px; border:outset 1px; line-height:1em;vertical-align:top;">' 
+							+ t.text + '</div>').click(t.func).appendTo(tb).attr({title:t.tip})
+			});
+		}
+		function evtPt(e) {
+			dims = { x:canvas.offset().left, y:canvas.offset().top, w:canvas.width(), h: canvas.height() };
+			return {x : e.clientX - dims.x, y : e.clientY - dims.y }
+		}
+		canvas.on("mousemove", function(e) {
+				if (!drawing) return;
+				var s = strokes[strokes.length-1];
+				if (s.obj != 'Pencil') s.pts.length = 1;
+				s.pts.push(evtPt(e));
+				draw();
+			}).on("mousedown", function(e) {
+				drawing = strokes.push({ obj:tool, clr : sClr, width:sWidth, pts : [ evtPt(e) ] });
+			}).on("mouseup mouseout", function(e) {	
+				drawing = false; 
+				if (strokes.length > 0 && strokes[strokes.length-1].pts.length < 2)
+					strokes.pop();
+			});
+		
+		function draw() {
+			ctx.clearRect(0, 0, dims.w, dims.h);
+			strokes.forEach(function(s) {
+				if (s.pts.length < 2) return;
+				ctx.beginPath();
+				ctx.strokeStyle = s.clr;
+				ctx.lineWidth = s.width;
+				var a = s.pts[0], b = s.pts[1];
+				if (s.obj == "Rectangle") 
+					ctx.strokeRect(Math.min(a.x,b.x), Math.min(a.y,b.y), Math.abs(a.x-b.x), Math.abs(a.y-b.y));				
+				else {
+					ctx.moveTo(a.x, a.y);
+					for (var i = 1, len = s.pts.length; i < len; i++)
+						ctx.lineTo(s.pts[i].x, s.pts[i].y);
+					if (s.obj == "Arrow") {
+						var al = Math.max(8,s.width*2.5), rd = Math.PI/5, r = Math.atan2(b.y-a.y, b.x-a.x);
+						ctx.moveTo(b.x-al*Math.cos(r-rd), b.y-al*Math.sin(r-rd));
+						ctx.lineTo(b.x, b.y);
+						ctx.lineTo(b.x-al*Math.cos(r+rd), b.y-al*Math.sin(r+rd));
+					}
+					ctx.stroke();
+				}
+				ctx.closePath();
+			});
+		}
+		// to get image ->
+		//var dataURL = ctx.canvas.toDataURL();
+		canvas.data('scribble', this);
+		setupTools();
+		return this;
+	}
+
+	$.fn.Scribble = function(method) {
+		var el = $(this), s = el.data('scribble');
+		return this.each(function() {
+			if (typeof(method) == 'string' && s && $.isFunction(s[method])) 
+				return s[method].apply(this, Array.prototype.slice.call(arguments, 1));
+			else if (!s)
+				Scribble(this, method);
+		});
+	};
+
+})();
+
+$(document).ready(function() {
+	$('#can').Scribble();
+});    
+    </script>
+    <body >
+        <div id="can" style="position:absolute;top:10%;left:10%;
+			border:2px solid;width:400px;height:400px;"></div>
+    </body>
+    </html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+	<title>SVG Editor</title>
+	<head>
+		<script src="https://code.jquery.com/jquery-1.12.4.js"></script>	
+	</head>
+	<body>
+		<div id="content" style='position:absolute; width:600px; height:400px; left:100px; border:solid;'>
+		</div>
+		<script src="Editor.js"></script>
+		<script>
+$(document).ready(function() {
+	
+	$('#content').Scribble().change(function() {
+		$('#res').html($(this).Scribble('toText', 'svg'));
+		$(this).Scribble('toText', 'png', function(img) {
+			$('#img').attr('src', img);
+		});
+	});
+});    
+		</script>
+		<img id='img' style='border:solid;position:absolute; top:450px; left:5px; width:200px; height:130px;'>
+		<div id='res' style='border:solid;position:absolute; top:450px; left:210px;'></div>
+	</body>
+</html>
