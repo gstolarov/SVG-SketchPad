@@ -1,6 +1,6 @@
 # SVG SketchPad Editor - Imbeddable jQuery Plugin
 Short (under 500 lines) jQuery plugin implementation of the sketch pad/image editor.
-![](ss.png)
+![](src/ss.png)
 
 ## Background
 For one of my projects I needed to implement a sketch pad. Browsing Google for ideas, very quickly I came up with a canvas based sketch pad (see canvas.html in the attached zip file). However it was missing couple of features and I was not sure they are easy to implement on canvas platform:
