@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="google-site-verification" content="VkGEZbIgX7ZPSXiBtOSXHzRS6n5vR7ydW3WdnO9S_bI" />
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>SVG SketchPad Editor - Imbeddable jQuery Plugin | SVG-SketchPad</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="SVG SketchPad Editor - Imbeddable jQuery Plugin" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://gstolarov.github.io/SVG-SketchPad/" />
+<meta property="og:url" content="https://gstolarov.github.io/SVG-SketchPad/" />
+<meta property="og:site_name" content="SVG-SketchPad" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="SVG SketchPad Editor - Imbeddable jQuery Plugin" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","headline":"SVG SketchPad Editor - Imbeddable jQuery Plugin","name":"SVG-SketchPad","url":"https://gstolarov.github.io/SVG-SketchPad/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/SVG-SketchPad/assets/css/style.css?v=d8724a43f9b012f4b5118839cc78ea3e07347e47">
+    <!-- start custom head snippets, customize with your own _includes/head-custom.html file -->
+
+<!-- Setup Google Analytics -->
+
+
+
+<!-- You can set your favicon here -->
+<!-- link rel="shortcut icon" type="image/x-icon" href="/SVG-SketchPad/favicon.ico" -->
+
+<!-- end custom head snippets -->
+
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      
+      <h1><a href="https://gstolarov.github.io/SVG-SketchPad/">SVG-SketchPad</a></h1>
+      
+
+      <h1 id="svg-sketchpad-editor---imbeddable-jquery-plugin">SVG SketchPad Editor - Imbeddable jQuery Plugin</h1>
+<p>Short (under 500 lines) jQuery plugin implementation of the sketch pad/image editor.
+<img src="/SVG-SketchPad/src/ss.png" alt="" /></p>
+
+<h2 id="background">Background</h2>
+<p>For one of my projects I needed to implement a sketch pad. Browsing Google for ideas, very quickly I came up with a canvas based sketch pad (see canvas.html in the src folder). However it was missing couple of features and I was not sure they are easy to implement on canvas platform:</p>
+
+<ul>
+  <li>Saving drawing as image, so it can be used by external tools w/o special renderers</li>
+  <li>Storage considerations - even PNG image would be quite large</li>
+  <li>Ability to modify image in the future.</li>
+  <li>Selecting existing object for fine-tuning.</li>
+</ul>
+
+<p>So for the next iteration, I decided to base sketch pad on SVG technology (svg.html). It seems to address all the issues I had with canvas.</p>
+
+<h2 id="using-the-code">Using the code</h2>
+<p>To use the code just include the editor.js file and initialize as regular jQuery plugin.</p>
+
+<p>The sample code below, creates a scratchpad area (#content) as a simple &lt;div/&gt; with desired dimentions. Then in jQuery document.ready function it creates a jQuery object and attaches change event handler. Inside this handler, it uses Scribble’s object toText function to get drawing as svg text string and sets a value of preview #res element to that svg.</p>
+
+<p>Also it gets a value of the drawing as PNG and sets the preview image to that value. Since the image load in not instantanious operation in the browser, the event handler supplied as a parameter to the function gets called when image is ready.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;div id="content" 
+        style='position:absolute; width:600px; height:400px; left:100px; border:solid;'&gt;&lt;/div&gt;
+&lt;script src="Editor.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+        $(document).ready(function() {
+            $('#content').Scribble().change(function() {
+                $('#res').html($(this).Scribble('toText', 'svg'));
+                $(this).Scribble('toText', 'png', function(img) {
+                    $('#img').attr('src', img);
+                });
+            });
+        });    
+&lt;/script&gt;
+&lt;img id='img' style='border:solid;position:absolute; top:450px; left:5px; width:200px; height:130px;'&gt;
+&lt;div id='res' style='border:solid;position:absolute; top:450px; left:210px;'&gt;&lt;/div&gt;
+</code></pre></div></div>
+<p>There are three methods of interest here:</p>
+
+<ul>
+  <li>onchange event - generated every time the image is changed</li>
+  <li>toText(type, onLoad) method - a method that returns current SVG value as a string in a different formats. Possible formats:
+    <ul>
+      <li>svg - return value as SVG string</li>
+      <li>base64 - value as SVG base64 encoded</li>
+      <li>mix - if SVG contains unicode characters (emojii), do base64 encoding, otherwise return non-encoded value</li>
+      <li>png, jpeg, or any other image mime types w/o “image/” portion. When called, the return value is base64 encoded value. The image will be returned in the OnLoad method (required here)</li>
+    </ul>
+  </li>
+  <li>fromText(val) - loads a value of the editor with provided SVG string generated by toText() function above. If container element has hidden <textarea></textarea> as a child, then the value of this textarea will be used as initial value for an editor. If this textarea is not found, the empty hidden one will be created. The text area will be updated with SVG content any time there is a change. This is a trick I use to pass values between the browser and back-end ASP.NET WebForms app.</li>
+</ul>
+
+<h2 id="supported-tools">Supported tools</h2>
+<ul>
+  <li>Line - allows for creation of line</li>
+  <li>Rectangle - allows for creation of rectangle</li>
+  <li>Arrow - allows for creation of arrow</li>
+  <li>Pencil - free form drawing. Initial implementaion was to remember all the mousemove points. However that leads to squigly lines and a lot of points. So the final version draws straight line if shift is not pressed. You can press the shift key or pause for half a second to drop an anchor or hold shift while drawing to follow mosemove events.</li>
+  <li>Text - allows for text/emojii entry.</li>
+  <li>Image - ask for image to insert. Images can also be drag/dropped or pasted on top of drawing area</li>
+  <li>Move - switches from object creation to move/resize mode.</li>
+  <li>Color - change color of selected/created object</li>
+  <li>Width - changes stroke widh of the selected/created object</li>
+  <li>Rotation - for simplicity sake I allow only for 90 degreee rotation as a time</li>
+</ul>
+
+<h2 id="points-of-interest">Points of Interest</h2>
+<h3 id="base64-encoding">Base64 encoding</h3>
+<p>It some point troubleshooting final product, I encountered and issue with emojii not properly reloadind. It took me a while to realize that my database column is varchar(max) and doesn’t store unicode. Since the same database is used for other projects, instead of changing column type, I decided to encode SVG as base 64. Unfortunately the btoa function in the browser has a problem so it took some time to find a solution. You can see it out at https://developer.mozilla.org/en-US/docs/Web/API/btoa.</p>
+
+<h3 id="svg-loadingcompatibility">SVG Loading/Compatibility</h3>
+<p>SVG is a whole languadge. I never planned to be able to support all the features defined in SVG specs, just merely to be able to load the documents that I previously created. Please don’t try it with just random SVG document - it will most likely not work.</p>
+
+
+      
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>
