@@ -1,4 +1,4 @@
-# SVG SketchPad Editor - Imbeddable jQuery Plugin
+# [SVG SketchPad Editor - Imbeddable jQuery Plugin](https://github.com/gstolarov/SVG-SketchPad)
 Short (under 500 lines) jQuery plugin implementation of the sketch pad/image editor.
 ![](src/ss.png)
 
